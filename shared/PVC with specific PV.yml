@@ -1,0 +1,28 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  annotations:
+    meta.helm.sh/release-name: jenkins
+    meta.helm.sh/release-namespace: jenkins
+    pv.kubernetes.io/bound-by-controller: 'yes'
+    volume.beta.kubernetes.io/storage-provisioner: os-external-nfs
+    volume.kubernetes.io/storage-provisioner: os-external-nfs
+  resourceVersion: '55416171'
+  name: jenkins-backup
+  namespace: jenkins
+  finalizers:
+    - kubernetes.io/pvc-protection
+  labels:
+    app.kubernetes.io/component: jenkins-controller
+    app.kubernetes.io/instance: jenkins
+    app.kubernetes.io/name: jenkins
+    helm.sh/chart: jenkins-4.5.0
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  volumeName: pvc-094d6b9b-77ef-49a5-a6f6-40a53381383d
+  storageClassName: os-external-nfs-persistent
+  volumeMode: Filesystem

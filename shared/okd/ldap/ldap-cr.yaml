@@ -1,0 +1,24 @@
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: active-directory 
+    mappingMethod: claim 
+    type: LDAP
+    ldap:
+      attributes:
+        id: 
+        - dn
+        email: 
+        - mail
+        name: 
+        - cn
+        preferredUsername: 
+        - uid
+      bindDN: "ldapdev@smartstream-stp.com" 
+      bindPassword: 
+        name: ldap-secret
+      insecure: true
+      url: "dcvie01.sst.stp:3268, dcvie02.sst.stp:3268, dcbri01.sst.stp:3268,dcbri02.sst.stp:3268" 

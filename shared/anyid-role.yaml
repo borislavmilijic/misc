@@ -1,0 +1,31 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pegasus-nexus-sa-anyuid-role
+rules:
+  - apiGroups:
+    - security.openshift.io
+    resourceNames:
+      - anyuid
+    resources:
+      - securitycontextconstraints
+    verbs:
+      - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: policy-controller-anyuid-rb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pegasus-nexus-sa-anyuid-role
+subjects:
+  - kind: ServiceAccount
+    name: pegasus-nexus
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pegasus-nexus

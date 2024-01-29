@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: maven-setting-pv
+spec:
+  capacity:
+    storage: 5Mi
+  accessModes:
+    - ReadWriteMany  # Adjust the access mode as per your requirements
+  persistentVolumeReclaimPolicy: Retain  # or Delete if you prefer
+  storageClassName: os-external-nfs-persistent  # Specify your StorageClass name
+  local:
+    path: "/var/home/core/maven"
+  nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - worker-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: maven-setting-pvc
+spec:
+  accessModes:
+    - ReadWriteMany  # Must match the access mode of your PV
+  storageClassName: os-external-nfs-persistent  # Specify your StorageClass name
+  resources:
+    requests:
+      storage: 5Mi  # Request the amount of storage you need

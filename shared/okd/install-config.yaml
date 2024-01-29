@@ -1,0 +1,24 @@
+apiVersion: v1
+fips: false
+baseDomain: smartstream-stp.com
+compute:
+- hyperthreading: Enabled
+  name: worker
+  replicas: 1
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  replicas: 1
+metadata:
+  name: okd4
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  none: {}
+pullSecret: '{"auths":{"fake":{"auth":"aWQ6cGFzcwo="}}}'
+sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCtDherJhz9Du83BL6zUk8jqQWNIofwB11z8s90EBzLtNbiN8UWlP6xI3yq5jbsiPjQtRDQOP5ldcL9b3KySmO/vLonESuscWPBd4hlvab57CBpGkErg/xe4BsYJQzDQuqveI0yae6QZ+gza2Lh7/qW5OsiDL5atpVn/HrsVsqVvpKJ0i0kRmkdQbLaDW4Z4O4blDFhDMeZVJpHrSiYoIRp+NaNrzV7MyPgePfPNW6dto5vCguR0YeZMbIOGJ+Kd/NfXcCermO0JWf+rN5rBDDaoMfjwG5OtPmdV7GQCmxP+rVtPL/kKR0Z4BTGPR4ViATTfa4+IwcraflCJVfjgbjcldAr5Yx9DlGNJyYAjqC6djkMLHow3WY1uQjKDOMluoKX/B79pBkn+XSDPDFrOupCA26wB3GByGHPxnP7ClGWX0Hk4Hgcr9c1jxMi7ThBWvLTJ3ohaUtx2ukASut1ih9Cch2iKJxvB8nQK2Z2ZB5Jgf2AKRUpfwoz9ZXTubVspl0= root@okd4manager'

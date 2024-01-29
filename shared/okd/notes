@@ -1,0 +1,27 @@
+dnf -y install nginx-mod-stream
+
+wget https://github.com/okd-project/okd/releases/download/4.13.0-0.okd-2023-05-22-052007/openshift-client-linux-4.13.0-0.okd-2023-05-22-052007.tar.gz https://github.com/okd-project/okd/releases/download/4.13.0-0.okd-2023-05-22-052007/openshift-install-linux-4.13.0-0.okd-2023-05-22-052007.tar.gz
+tar zxvf openshift-client-linux
+tar zxvf openshift-install-linux
+mv oc kubectl openshift-install /usr/local/bin/
+chmod 755 /usr/local/bin/{oc,kubectl,openshift-install}
+
+ssh-keygen -q -N ""
+mkdir okd4
+
+openshift-install create manifests --dir=okd4
+openshift-install create ignition-configs --dir=okd4
+
+cp ./okd4/{bootstrap.ign,master.ign,worker.ign} /usr/share/nginx/html/
+chmod 644 /usr/share/nginx/html/{bootstrap.ign,master.ign,worker.ign}
+
+sudo coreos-installer install /dev/sbd --ignition-url=http://192.168.103.40:8080/master.ign --insecure-ignition --copy-network
+
+openshift-install --dir=okd4 wait-for bootstrap-complete
+
+export KUBECONFIG=okd4/auth/kubeconfig
+echo 'export KUBECONFIG=$HOME/okd4/auth/kubeconfig' >> ~/.bash_profile
+
+
+oc get csr
+oc adm certificate approve csr-*** - 2x

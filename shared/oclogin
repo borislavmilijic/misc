@@ -1,0 +1,104 @@
+#!/usr/bin/perl 
+
+######
+#MODULES
+######
+use strict;
+use warnings;
+
+#dnf install perl-HTTP-Request* perl-HTTP-Cookies perl-WWW-Mechanize perl-LWP-Protocol* perl-Term-ReadPassword* perl-Mojolicious -y
+use WWW::Mechanize;
+use Mojo::DOM;
+use Term::ReadPassword qw(read_password);
+
+######
+#VARIABLES
+######
+my $user, my $pass, my $url, my $mech, my $server, my $site, my $dom, my $tokencode;
+
+######
+#Functions
+######
+
+#initialize variables
+sub init_var {
+        #hard coded credentials
+        #won't prompt for login credentials later
+
+        $url="https://oauth-openshift.apps.okd4.smartstream-stp.com/oauth/authorize?client_id=openshift-browser-client&redirect_uri=https%3A%2F%2Foauth-openshift.apps.okd4.smartstream-stp.com%2Foauth%2Ftoken%2Fdisplay&response_type=code";
+        $mech=WWW::Mechanize->new(ssl_opts => {verify_hostname => 0,},);
+        $mech->ssl_opts( 'verify_hostname' => 0 );
+        $server="--server=https://api.okd4.smartstream-stp.com:6443";
+}
+
+#Login
+#if var $user and $pass have no value request input from CLI
+sub login {
+        # if username not defined ask for input
+        # if password not defined ask for input
+        if (!defined($user)) {
+                print "Username :";
+                $user = <STDIN>;
+                chomp $user;
+        };
+        if (!defined($pass)) {
+                $pass = read_password("Password :");
+        };
+}
+
+
+# "fill" the form and submit it 
+sub form_completion {
+        $mech->submit_form(
+                form_number => 1,
+                fields => {
+                        username => $user,
+                        password => $pass,
+                });
+        $mech->submit_form();
+}
+
+# check if oc binary exists
+sub check_oc {
+	my $tempvar = system("oc version");
+	#my $tempvar = `oc version`;
+        if ($? < 0) {
+                #print "oc binary not found \n$dUrl\n";
+                print "oc binary not found! Please install oc client.";
+                exit;
+        };
+}
+
+# main script
+sub main_function {
+        # get the URL containing the login form 
+        $mech->get( $url );
+
+        # select 'HTPasswd' link
+        $mech->follow_link( n => 2 );
+        
+        print $mech->follow_link( n => 1 );
+        #fill in form and submit
+        form_completion();
+
+        # parse content into Mojo Module
+        $dom = Mojo::DOM->new($mech->content());
+
+        # extract wanted content into var
+        # if its possible to extract wanted value > oc login
+        if (!eval {$tokencode = $dom->at('code')->all_text;1}){
+                warn("Can't find token! Possible Errors: Wrong Username/Password");
+        }else {
+                system("oc login --token=$tokencode $server");
+        }
+}
+
+######
+#MAIN
+######
+
+check_oc();
+init_var();
+login();
+main_function();
+
