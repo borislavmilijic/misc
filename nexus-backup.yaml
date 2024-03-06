@@ -1,0 +1,73 @@
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: pegasus-nexus
+  name: nexus-backup
+  namespace: nexus-operator
+---
+kind: CronJob
+apiVersion: batch/v1
+metadata:
+  name: nexus-backup
+  namespace: nexus-operator
+spec:
+  schedule: 0 1 * * 6
+  startingDeadlineSeconds: 120
+  concurrencyPolicy: Forbid
+  suspend: false
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: nexus-backup
+          terminationGracePeriodSeconds: 30
+          securityContext:
+            runAsUser: 200
+            fsGroup: 200
+          containers:
+            - resources:
+                limits:
+                  cpu: '1'
+                  memory: 1Gi
+                requests:
+                  cpu: '1'
+                  memory: 1Gi
+              terminationMessagePath: /dev/termination-log
+              name: nexus-backup
+              command:
+                - kube-tasks
+              env:
+                - name: AWS_REGION
+                  value: us-east-1
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: pegasus-aws-backup-user-k8s
+                      key: accessKey
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: pegasus-aws-backup-user-k8s
+                      key: secretKey
+              imagePullPolicy: IfNotPresent
+              terminationMessagePolicy: File
+              image: 'maorfr/kube-tasks:0.2.0'
+              args:
+                - simple-backup
+                - '-n'
+                - nexus-operator
+                - '-l'
+                - app=pegasus-nexus
+                - '--container'
+                - nexus-server
+                - '--path'
+                - /nexus-data
+                - '--dst'
+                - 's3://pegasus-k8s-backups/pegasus-nexus/'
+          serviceAccount: nexus-backup
+          dnsPolicy: ClusterFirst
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1

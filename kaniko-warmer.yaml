@@ -1,0 +1,32 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: kaniko-warmer
+  namespace: jenkins
+spec:
+  restartPolicy: Never
+  serviceAccountName: default
+  containers:
+  - name: kaniko-warmer
+    image: 'gcr.io/kaniko-project/warmer:latest'
+    volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker
+      - name: kaniko-cache
+        mountPath: /cache
+    args: ["--cache-dir=/cache",
+           '--image=docker-public-proxy.smartstream-okd.com/almalinux:9',
+           '--image=docker-public-proxy.smartstream-okd.com/almalinux/9-minimal',
+           '--image=pegasus-nexus-docker.smartstream-okd.com/pegasus/pegasus-frontend-make:latest'
+           ]
+  serviceAccount: jenkins
+  volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: nexus-reg-k8s
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+    - name: kaniko-cache
+      persistentVolumeClaim:
+        claimName: kaniko-cache-pvc
